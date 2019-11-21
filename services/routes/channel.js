@@ -1,8 +1,20 @@
 const twitch = require('../TwitchCommon.js');
+const Inert = require('@hapi/inert');
 const sql = require('mssql');
 
 module.exports = [
-{
+  {
+    method: 'GET',
+    path: '/{param*}',
+    handler: {
+      directory: {
+          path: '.',
+          redirectToSlash: true,
+          index: true,
+      }
+    }
+  },
+  {
     method: 'GET',
     path: '/channel/config',
     handler: channelConfigHandler,

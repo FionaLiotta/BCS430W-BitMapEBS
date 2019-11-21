@@ -15,6 +15,7 @@
  */
 const fs = require('fs');
 const Hapi = require('@hapi/hapi');
+const Inert = require('@hapi/inert');
 const path = require('path');
 const sql = require('mssql');
 const WebSocket = require('ws');
@@ -67,9 +68,11 @@ const server = new Hapi.Server(serverOptions);
     console.log ('Error connecting to SQL server: \n' + err);
   }
 
-
+  await server.register(Inert);
   const routes = require('./routes/');
   server.route(routes);
+
+
 
   // Start the server.
   await server.start();

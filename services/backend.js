@@ -24,7 +24,7 @@ require('./websocket.js');
 
 const serverOptions = {
   host: 'localhost',
-  port: 8081,
+  port: 8080,
   routes: {
     cors: {
       origin: ['*'],

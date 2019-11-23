@@ -1,6 +1,6 @@
 const twitch = require('./TwitchCommon.js');
 const sql = require('mssql');
-const WebSocket = require('ws');
+const WebSocket = require('ws-reconnect');
 const request = require('request');
 
 // Regex for detecting country code emoji
@@ -91,22 +91,17 @@ async function userDonationHandler(payload)
 
 // Listening for mock data on the backend now
 const url = 'wss://melon-crop.glitch.me/';
-const connection = new WebSocket(url);
+let connection = new WebSocket(url);
 console.log("Opening connection to mock data server...");
-
+connection.start();
 // Keepalive function for the websocket.
 function keepalive()
 {
-  if(connection.readyState == connection.OPEN)
-  {
-    console.log('Sending keepalive...');
-    connection.ping('ping');
-  } 
-  else
+  if(connection.readyState !== connection.OPEN)
   {
     console.log('connection.readyState not OPEN', connection.readyState);
-  }
-  setTimeout(keepalive, 15000);
+  } 
+  setTimeout(keepalive, 30000);
 }
 
 connection.on('pong', () => {
@@ -118,10 +113,14 @@ connection.on('ping', (e) =>{
   connection.pong();
 })
 
-connection.onopen = () => {
+connection.on('reconnect', () =>{
+  console.log('reconnecting...');
+})
+
+connection.on('connect', () => {
     console.log("Opened connection to mock data server.");
-    //keepalive();
-}
+    keepalive();
+})
 
 connection.onmessage = async e => {
     console.log("Heard mock data.");

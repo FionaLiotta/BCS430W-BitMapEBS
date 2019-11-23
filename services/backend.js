@@ -18,14 +18,13 @@ const Hapi = require('@hapi/hapi');
 const Inert = require('@hapi/inert');
 const path = require('path');
 const sql = require('mssql');
-const WebSocket = require('ws');
 require('dotenv').config();
 const twitch = require('./TwitchCommon.js');
 require('./websocket.js');
 
 const serverOptions = {
-  host: process.env.HOST,
-  port: process.env.PORT,
+  host: process.env.HOST || 'localhost',
+  port: process.env.PORT || 8080,
   routes: {
     cors: {
       origin: ['*'],

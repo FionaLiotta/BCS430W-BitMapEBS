@@ -23,8 +23,8 @@ const twitch = require('./TwitchCommon.js');
 require('./websocket.js');
 
 const serverOptions = {
-  host: process.env.HOST || 'localhost',
-  port: process.env.PORT || 8080,
+  host: process.env.HOST,
+  port: process.env.PORT,
   routes: {
     cors: {
       origin: ['*'],

@@ -122,27 +122,24 @@ connection.on('connect', () => {
     keepalive();
 })
 
-connection.onmessage = async e => {
+connection.on('message', async (e) => {
     console.log("Heard mock data.");
-    //console.log(e);
+    console.log(e);
     // Grab the body of the message from the event
-    const {data: eData} = e;
+    const {data: eData} = JSON.parse(e);
     //console.log(eData);
-    if(eData === 'pong')
-    {
-      console.log('Heard pong.');
+    if(!eData.topic){
+      console.log('Not a donation message: ', eData);
       return;
     }
     // Extract the topic from the message to see what kind of event it was
-    const {data: {topic} = {topic: 'No topic'}} = JSON.parse(eData);
+    const {topic} = eData;
     console.log(topic);
-
-
 
     // Handle donations
     if(topic && topic.includes("channel-bits-events-v2"))
     {
-        const {data: {message}} = JSON.parse(eData);
+        const {message} = eData;
         const parsedMsg = JSON.parse(message);
         const {data: {channel_id, user_id, chat_message, bits_used}} = parsedMsg;
         console.log(channel_id, user_id, chat_message, bits_used);
@@ -151,7 +148,7 @@ connection.onmessage = async e => {
         console.log(donationResult);
         sendBroadcast(donationResult);
     }
-}
+});
 
 function sendBroadcast(payload) {
     // Set the HTTP headers required by the Twitch API.

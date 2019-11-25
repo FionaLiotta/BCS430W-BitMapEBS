@@ -103,7 +103,7 @@ async function channelConfigWriteHandler(req, h)
     WHERE Config_id = ${configId}
     ;`);
   console.log('Config write result: ', writeConfig);
-  if(writeConfig.rowsAffected === 1)
+  if(writeConfig.rowsAffected[0] === 1)
   {
     console.log('Wrote config.');
     // Grab the current config and send it back.

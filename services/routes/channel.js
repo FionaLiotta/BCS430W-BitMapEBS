@@ -102,6 +102,7 @@ async function channelConfigWriteHandler(req, h)
     SET StreamerCountry = ${streamerCountry}, mapType = N'${mapType}'
     WHERE Config_id = ${configId}
     ;`);
+  console.log('Config write result: ', writeConfig);
   if(writeConfig.rowsAffected === 1)
   {
     console.log('Wrote config.');

@@ -34,6 +34,16 @@ module.exports = [
     path: '/channel/totalDonations',
     handler: channelTotalDonationsHandler
   },
+  {
+    method: 'GET',
+    path: '/user/config',
+    handler: userConfigReadHandler
+  },
+  {
+    method: 'POST',
+    path: '/user/config',
+    handler: userConfigWriteHandler
+  },
 ]
 
 async function createConfig(mapType, streamerCountry, channelId)
@@ -135,4 +145,60 @@ async function channelTotalDonationsHandler(req, h)
   `);
   return h.response(totalQuery.recordset);
 
+}
+
+// If we're using a fake Rig user, it will have a URIG prefix that must be removed
+// since our DB keys users by an int.
+function removeRigIdPrefix(opaque_user_id)
+{
+  if(opaque_user_id[0] === 'U')
+  {
+    opaque_user_id = opaque_user_id.slice(4);
+    console.log('Removed URIG: ', opaque_user_id);
+  }
+  return opaque_user_id;
+}
+
+async function userConfigReadHandler(req, h)
+{
+  let decodedjwt = twitch.verifyAndDecode(req.headers.authorization);
+  let {opaque_user_id} = decodedjwt;
+  opaque_user_id = removeRigIdPrefix(opaque_user_id);
+  try
+  {
+    let userExists = await sql.query(`SELECT country_id FROM dbo.Users WHERE user_id = ${opaque_user_id}`);
+    return h.response(userExists.recordset);
+  }
+  catch (err) 
+  {
+    console.log('SQL Error: ', err);
+    return h.response({"message":"user not found"});
+  }
+}
+
+async function userConfigWriteHandler(req, h)
+{
+  let decodedjwt = twitch.verifyAndDecode(req.headers.authorization);
+  let {opaque_user_id} = decodedjwt;
+  opaque_user_id = removeRigIdPrefix(opaque_user_id);
+  const userCountry = req.payload;
+  console.log({userCountry});
+  try{
+    let userExists = await sql.query(`SELECT * FROM dbo.Users WHERE user_id = ${opaque_user_id}`);
+    if(userExists)
+    {
+      let userCountryUpdate = await sql.query(`UPDATE dbo.Users SET country_id = ${userCountry} WHERE user_id = ${opaque_user_id}`);
+      console.log({userCountryUpdate});
+      return h.response(userCountryUpdate);
+    }
+    let userCountryRegister = await sql.query(`INSERT INTO dbo.Users VALUES (${opaque_user_id}, ${userCountry})`);
+    console.log({userCountryRegister});
+    return h.response(userCountryRegister);  
+  }
+  catch (err)
+  {
+    console.log('SQL error: ', err);
+    return h.response({'message':'error writing config'});
+  }
+  
 }
